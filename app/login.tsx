@@ -26,19 +26,17 @@ export default function Login() {
     // }
   }, [error, success]);
   return (
-    <>
-      <Toast />
-      <LoginScreen
-        logoImageSource={require("../assets/images/kc.png")}
-        onLoginPress={() => {
-          login(signIn);
-        }}
-        onSignupPress={() => {}}
-        onEmailChange={setEmail}
-        loginButtonText={"Login"}
-        disableSignup
-        onPasswordChange={setPassword}
-      />
-    </>
+    <LoginScreen
+      logoImageSource={require("../assets/images/kc.png")}
+      onLoginPress={() => {
+        login(signIn);
+      }}
+      onSignupPress={() => {}}
+      onEmailChange={setEmail}
+      loginButtonText={"Login"}
+      disableSignup
+      children={<Toast />}
+      onPasswordChange={setPassword}
+    />
   );
 }

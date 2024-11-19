@@ -1,77 +1,108 @@
-import { Image, StyleSheet, Platform } from "react-native";
-import { HelloWave } from "@/components/HelloWave";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import Toast from "react-native-toast-message";
+import { FFmpegKit, ReturnCode } from "ffmpeg-kit-react-native";
 
-export default function HomeScreen() {
+export default function VideoPicker() {
+  const [video, setVideo] = React.useState("");
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: "cmd + d",
-              android: "cmd + m",
-              web: "F12",
-            })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this
-          starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{" "}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      {/* Video Picker Preview */}
+      <View style={styles.videoContainer}>
+        <Text
+          style={styles.placeholderText}
+          onPress={async () => {
+            const document = await DocumentPicker.getDocumentAsync({
+              type: "video/*",
+            });
+            if (!document.canceled) {
+              setVideo(document.assets[0].uri);
+            }
+          }}
+        >
+          Select a Video
+        </Text>
+      </View>
+
+      {/* Convert to GIF Button */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          if (video === "") {
+            Toast.show({
+              type: "error",
+              text1: "Error",
+              text2: "Please select a video first",
+            });
+          } else {
+            Toast.show({
+              type: "info",
+              text1: "Info",
+              text2: "Converting video to GIF",
+            });
+            FFmpegKit.execute(
+              `-i ${video} -vf "fps=30,scale=800:-1:flags=lanczos" -c:v gif clips/output.gif`,
+            ).then(async (session) => {
+              const statistics = await session.getStatistics();
+              console.log(
+                `FFmpeg process exited with statistics ${statistics}`,
+              );
+              const returnCode = await session.getReturnCode();
+              if (ReturnCode.isSuccess(returnCode)) {
+                Toast.show({
+                  type: "success",
+                  text1: "Success",
+                  text2: "Video converted to GIF",
+                });
+              } else if (ReturnCode.isCancel(returnCode)) {
+                // CANCEL
+              } else {
+                // ERROR
+              }
+            });
+          }
+        }}
+      >
+        <Text style={styles.buttonText}>Convert to GIF</Text>
+      </TouchableOpacity>
+      <Toast />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
+  container: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    gap: 8,
+    backgroundColor: "#f0f0f0",
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  videoContainer: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
+  placeholderText: {
+    color: "#999",
+    fontSize: 16,
+  },
+  button: {
+    width: "60%",
+    paddingVertical: 15,
+    backgroundColor: "#007bff",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
