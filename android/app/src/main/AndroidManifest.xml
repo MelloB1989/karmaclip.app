@@ -28,6 +28,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
         <data android:scheme="com.mellob.karmaclip.app"/>
+        <data android:scheme="exp+karmaclip.app"/>
       </intent-filter>
     </activity>
   </application>

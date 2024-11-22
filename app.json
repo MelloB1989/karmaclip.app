@@ -27,6 +27,15 @@
     "plugins": [
       "expo-router",
       [
+        "@config-plugins/ffmpeg-kit-react-native",
+        {
+          "package": "min",
+          "ios": {
+            "package": "video"
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
